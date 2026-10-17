@@ -1,5 +1,5 @@
 /* Junior Quizmaster — app logic. Content (questions, lines, name list) comes from content.js. */
-const AUDIO_VERSION = "202610170923";
+const AUDIO_VERSION = "202610170931";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pad = n => String(n).padStart(2, "0");
@@ -133,22 +133,53 @@ function renderHome(){
   list.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { editingId = b.dataset.edit; renderHome(); });
   list.querySelectorAll("[data-cancel]").forEach(b => b.onclick = () => { editingId = null; renderHome(); });
   list.querySelectorAll("[data-editform]").forEach(f => f.addEventListener("submit", e => { e.preventDefault(); const id = f.dataset.editform; const k = state.kids.find(x => x.id === id); const name = tidyName($("#en-" + id).value); if (!k || !name) return; k.name = name; k.age = +$("#ea-" + id).value; editingId = null; save(); renderHome(); }));
-  $("#remTime").value = state.reminder; $("#remDays").value = state.remDays || "school";
+  $("#remTime").value = state.reminder; $("#remDays").value = state.remDays || "school"; renderReminder();
 }
 $("#addKid").addEventListener("submit", e => { e.preventDefault(); const name = tidyName($("#kidName").value); if (!name) return;
   state.kids.push({ id: "k" + Math.random().toString(36).slice(2, 8), name, age: +$("#kidAge").value }); $("#kidName").value = ""; save(); renderHome();
   speak(["l/welcome_pre", { name }, "l/welcome_post"], `${LINES.welcome_pre} ${name}! ${LINES.welcome_post}`); });
-$("#remTime").addEventListener("change", e => { state.reminder = e.target.value; save(); });
-$("#remDays").addEventListener("change", e => { state.remDays = e.target.value; save(); });
-$("#remBtn").addEventListener("click", () => {
-  const [hh, mm] = (state.reminder || "08:15").split(":"); const start = `${todayKey().replace(/-/g, "")}T${hh}${mm}00`;
-  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, ""); const url = location.href.split("#")[0];
-  const rule = state.remDays === "all" ? "RRULE:FREQ=DAILY" : "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR";
-  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Junior Quizmaster//EN","BEGIN:VEVENT",`UID:jq-${Date.now()}@juniorquizmaster`,`DTSTAMP:${stamp}`,`DTSTART:${start}`,"DURATION:PT10M",rule,
-    "SUMMARY:Junior Quizmaster time!",`DESCRIPTION:Professor Quizzard has 5 new questions ready. ${url}`,`URL:${url}`,"BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:Quiz time!","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); a.download = "junior-quizmaster-daily.ics"; document.body.appendChild(a); a.click(); a.remove();
-  toast("Open the calendar file to add your daily alert");
+$("#remTime").addEventListener("change", e => { state.reminder = e.target.value; save(); renderReminder(); });
+$("#remDays").addEventListener("change", e => { state.remDays = e.target.value; save(); renderReminder(); });
+/* ---------------- Daily reminder (a repeating calendar event with a link back here) ---------------- */
+const appUrl = () => location.href.split(/[?#]/)[0];
+const daysLabel = () => state.remDays === "all" ? "every day" : "school days";
+const timeLabel = () => { const [h, m] = (state.reminder || "08:15").split(":").map(Number); return new Date(2026, 0, 1, h, m).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); };
+function nextStart(){ // first occurrence from today, as local YYYYMMDDTHHMMSS
+  const [h, m] = (state.reminder || "08:15").split(":").map(Number); const d = new Date(); d.setHours(h, m, 0, 0);
+  if (d < new Date()) d.setDate(d.getDate() + 1);
+  while (state.remDays !== "all" && (d.getDay() === 0 || d.getDay() === 6)) d.setDate(d.getDate() + 1);
+  return d;
+}
+const fmt = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+const rrule = () => state.remDays === "all" ? "RRULE:FREQ=DAILY" : "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR";
+const tz = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Dublin"; } catch(e){ return "Europe/Dublin"; } };
+function markReminderSet(){ state.reminderSet = true; save(); renderReminder(); }
+function renderReminder(){
+  const set = !!state.reminderSet;
+  $("#remStatus").hidden = !set; $("#remStatus").textContent = `Set · ${timeLabel()}, ${daysLabel()}`;
+  $("#remIntro").textContent = set ? "Changed the time? Add the new one and delete the old event from your calendar." : "Get a nudge on your phone each day when it's quiz time, like on the way to school or after pick-up.";
+  $("#remNudge").hidden = set || !state.kids.length;
+}
+$("#remApple").addEventListener("click", () => {
+  const s = nextStart(), e = new Date(s.getTime() + 10 * 60000), url = appUrl();
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Junior Quizmaster//EN","METHOD:PUBLISH","BEGIN:VEVENT",`UID:jq-${Date.now()}@juniorquizmaster`,`DTSTAMP:${stamp}`,
+    `DTSTART;TZID=${tz()}:${fmt(s)}`,`DTEND;TZID=${tz()}:${fmt(e)}`,rrule(),"SUMMARY:🧙 Junior Quizmaster time!",
+    `DESCRIPTION:Professor Quizzard has 5 new questions ready.\\n${url}`,`URL:${url}`,"BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:Quiz time!","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (iOS) location.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);   // Safari offers "Add to Calendar"
+  else { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); a.download = "junior-quizmaster-reminder.ics"; document.body.appendChild(a); a.click(); a.remove(); }
+  $("#remNote").textContent = iOS ? "Tap “Add All” to put the daily reminder in your calendar." : "Open the downloaded file to add the reminder to your calendar.";
+  markReminderSet();
 });
+$("#remGoogle").addEventListener("click", () => {
+  const s = nextStart(), e = new Date(s.getTime() + 10 * 60000), url = appUrl();
+  const q = new URLSearchParams({ action: "TEMPLATE", text: "🧙 Junior Quizmaster time!", dates: `${fmt(s)}/${fmt(e)}`, ctz: tz(), recur: rrule(), details: `Professor Quizzard has 5 new questions ready.\n${url}` });
+  window.open("https://calendar.google.com/calendar/render?" + q.toString(), "_blank", "noopener");
+  $("#remNote").textContent = "In Google Calendar, tap Save. Then set the notification to “At time of event” so it pings at quiz time.";
+  markReminderSet();
+});
+$("#remNudge").addEventListener("click", () => { $("#reminder").scrollIntoView({ behavior: "smooth", block: "start" }); });
 
 /* ---------------- Listening ---------------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -269,8 +300,10 @@ async function tellFact(){
   const i = factIndex(), fact = FACTS[i];
   card().innerHTML = `<h2>Today's amazing fact ✨</h2><div class="fact">${esc(fact)}</div>
     <p class="muted small">Grown-ups: a good one to chat about on the way home.</p>
+    ${state.reminderSet ? "" : `<button class="remnudge" id="remAfter" type="button">⏰ <span>Grown-ups: want a reminder for tomorrow's quiz?</span> <b>Set it up →</b></button>`}
     <div class="row"><button class="btn ghost" id="again" type="button">🔁 Hear it again</button><button class="btn blue" id="done" type="button">All done</button></div>`;
   $("#again").onclick = () => speak(["f/" + i], fact); $("#done").onclick = () => $("#quitQuiz").click();
+  const ra = $("#remAfter"); if (ra) ra.onclick = () => { $("#quitQuiz").click(); setTimeout(() => $("#reminder").scrollIntoView({ behavior: "smooth", block: "start" }), 350); };
   await speak(["l/fact_intro", "f/" + i, "l/fact_bye"], `${LINES.fact_intro} ${fact}`);
 }
 

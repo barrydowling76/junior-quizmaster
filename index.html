@@ -128,6 +128,9 @@ td.num,th.num{text-align:right}
 .heard{min-height:3.2em;border:var(--bw) dashed var(--ink);border-radius:16px;padding:12px 14px;background:#fff;font-size:1.25rem;font-weight:600}
 .heard .hl{background:var(--sun);border-radius:6px;padding:0 4px}
 .typefall{display:grid;gap:8px}
+.remnudge{font:inherit;font-weight:700;text-align:left;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--lilac);border:2px dashed var(--ink-soft);border-radius:14px;padding:10px 14px;color:var(--ink);cursor:pointer}
+.remnudge b{color:var(--cobalt);margin-left:auto}
+.remnudge:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px}
 .brand{display:block;line-height:0;border-radius:50%}
 .brand:focus-visible{outline:3px solid var(--cobalt);outline-offset:3px}
 .badge text{paint-order:stroke fill}
@@ -249,7 +252,23 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
         <span class="chip" id="todayDate"></span>
       </div>
       <p class="muted">Tap a name to play. Five questions, answered out loud, then a fun fact.</p>
+      <button class="remnudge" id="remNudge" type="button" hidden>⏰ <span>Get a daily reminder for quiz time</span> <b>Set it up →</b></button>
       <div class="kids" id="kidList"></div>
+    </section>
+
+    <section class="card" aria-labelledby="remH" id="reminder">
+      <div class="row" style="justify-content:space-between"><h2 id="remH">⏰ Daily reminder</h2><span class="chip done" id="remStatus" hidden></span></div>
+      <p class="muted" id="remIntro">Get a nudge on your phone each day when it's quiz time, like on the way to school or after pick-up.</p>
+      <div class="row">
+        <div style="display:grid;gap:4px"><label for="remTime">Time</label><input type="time" id="remTime" value="08:15"></div>
+        <div style="display:grid;gap:4px"><label for="remDays">Which days</label>
+          <select id="remDays"><option value="school">School days (Mon–Fri)</option><option value="all">Every day</option></select></div>
+      </div>
+      <div class="row">
+        <button class="btn blue" id="remApple" type="button">iPhone calendar</button>
+        <button class="btn" id="remGoogle" type="button">Google Calendar</button>
+      </div>
+      <p class="small muted" id="remNote">Adds a repeating event with a link back here. Tap it when it pops up and the quiz is ready.</p>
     </section>
 
     <section class="card" aria-labelledby="addH">
@@ -263,16 +282,6 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
       <p class="small muted">Saved on this phone only in this test version.</p>
     </section>
 
-    <section class="card" aria-labelledby="remH">
-      <h2 id="remH">Daily quiz alert</h2>
-      <p class="muted">Pick a time and add a repeating alarm to your phone's calendar.</p>
-      <div class="row">
-        <div style="display:grid;gap:4px"><label for="remTime">Time</label><input type="time" id="remTime" value="08:15"></div>
-        <div style="display:grid;gap:4px"><label for="remDays">Which days</label>
-          <select id="remDays"><option value="school">School days (Mon–Fri)</option><option value="all">Every day</option></select></div>
-        <button class="btn" id="remBtn" type="button" style="align-self:end">⏰ Add to my calendar</button>
-      </div>
-    </section>
     <p class="small muted" style="text-align:center">Test version · class leaderboard and parent logins come in the full app.</p>
   </main>
 
@@ -284,7 +293,7 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
 <div id="toast" class="toast" hidden></div>
 <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
 
-<script src="content.js?v=202610170923"></script>
-<script src="app.js?v=202610170923"></script>
+<script src="content.js?v=202610170931"></script>
+<script src="app.js?v=202610170931"></script>
 </body>
 </html>
