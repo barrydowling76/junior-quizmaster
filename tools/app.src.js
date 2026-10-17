@@ -138,7 +138,15 @@ const CODE_RE = /^[A-Z]{3,4}[0-9]{4}$/;
 const cleanCode = c => String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 const showCode = c => String(c || "").replace(/^([A-Z]+)(\d+)$/, "$1-$2");
 const classLink = c => appUrl() + "?class=" + showCode(c);
-const boards = {}; // class code -> latest board from the server
+const boards = {}; // class code -> latest board from the server (includes .info: school, area, year)
+const YEARS = [["JI", "Junior Infants"], ["SI", "Senior Infants"], ["1", "1st class"], ["2", "2nd class"], ["3", "3rd class"], ["4", "4th class"], ["5", "5th class"], ["6", "6th class"]];
+const yearName = y => (YEARS.find(x => x[0] === y) || [, ""])[1];
+const COUNTIES = ["Carlow","Cavan","Clare","Cork","Donegal","Dublin","Galway","Kerry","Kildare","Kilkenny","Laois","Leitrim","Limerick","Longford","Louth","Mayo","Meath","Monaghan","Offaly","Roscommon","Sligo","Tipperary","Waterford","Westmeath","Wexford","Wicklow"];
+const schoolLists = {};   // county -> [[roll, name, town, area, level, kind], ...]
+const cleanTown = t => /^(B[áa]c|Baile [ÁA]tha Cliath)\s*\d/i.test(t || "") ? "" : (t || "");
+function classTitle(info){ if (!info || !info.school) return null; return `${info.school} · ${yearName(info.year)}${info.label ? " (" + info.label + ")" : ""}`; }
+function classPlace(info){ if (!info || !info.school) return ""; const t = cleanTown(info.town); return [t, info.area !== t ? info.area : "", info.county !== "Dublin" ? "Co. " + info.county : ""].filter(Boolean).join(", "); }
+let pick = null;          // the school picker currently open: { kid, county, area, q, roll, year, label, busy, msg }
 async function joinClass(kid, code){
   const r = await rpc("jq_join", { p_code: code, p_player: kid.pid, p_first: kid.name, p_initial: kid.initial || "", p_age: kid.age });
   if (!r.ok) throw new Error(r.error || "join_failed");
@@ -149,21 +157,72 @@ async function refreshBoards(){
   await Promise.all(codes.map(async c => { try { boards[c] = await rpc("jq_board", { p_code: c }); } catch(e){ boards[c] = boards[c] || { offline: true }; } }));
   renderHome();
 }
-const inviteText = kid => `Our class is playing Junior Quizmaster 🧙 Five fun questions a day from Professor Quizzard, and a Lightning Maths board for the fastest answers. Join ${kid.name}'s class (${showCode(kid.classCode)}) here: ${classLink(kid.classCode)}`;
+const inviteText = kid => { const info = (boards[kid.classCode] || {}).info, t = classTitle(info);
+  return `${t ? t + " is" : "Our class is"} playing Junior Quizmaster 🧙 Five fun questions a day from Professor Quizzard, and a Lightning Maths board for the fastest answers. Join here: ${classLink(kid.classCode)}`; };
 const MEDALS = ["🥇", "🥈", "🥉"];
 function boardList(rows, empty){ return rows && rows.length ? `<ol class="board">${rows.map((r, i) => `<li><span>${MEDALS[i]}</span><b>${esc(r.name)}</b><span class="t">${secs(r.ms)}s</span></li>`).join("")}</ol>` : `<p class="small muted">${empty}</p>`; }
 function classBlock(k){
   if (k.id === "demo") return "";
-  if (!k.classCode) return `<div class="classbox"><b>🏆 Class challenge</b><span class="small muted">Race classmates on Lightning maths. Start a class link and share it with other parents.</span>
-    <button class="btn mint" type="button" data-mkclass="${k.id}">Start a class link</button></div>`;
+  if (!k.classCode) {
+    if (!pick || pick.kid !== k.id) return `<div class="classbox"><b>🏆 Class challenge</b><span class="small muted">Race classmates on Lightning maths. Pick ${esc(k.name)}'s school and class, then share the link with other parents.</span>
+      <button class="btn mint" type="button" data-pickstart="${k.id}">Find ${esc(k.name)}'s school</button></div>`;
+    return pickerBlock(k);
+  }
   const b = boards[k.classCode];
   const body = !b ? `<p class="small muted">Loading the class board…</p>` : b.offline ? `<p class="small muted">Couldn't reach the class board just now.</p>` :
     `<div class="boards"><div><span class="lab">This week</span>${boardList(b.week, "No times yet this week. Answer a maths question fast to get on the board!")}</div>
      <div><span class="lab">All-time</span>${boardList(b.alltime, "No times yet.")}</div></div>`;
-  return `<div class="classbox"><div class="row" style="justify-content:space-between"><b>🏆 Class ${esc(showCode(k.classCode))}</b>${b && b.players ? `<span class="small muted">${b.players} quizzer${b.players === 1 ? "" : "s"}</span>` : ""}</div>
+  const info = b && b.info, title = classTitle(info);
+  return `<div class="classbox"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="display:grid;gap:2px;min-width:0"><b>🏆 ${esc(title || "Class " + showCode(k.classCode))}</b>
+      <span class="small muted">${esc([classPlace(info), "code " + showCode(k.classCode)].filter(Boolean).join(" · "))}</span></div>${b && b.players ? `<span class="small muted">${b.players} quizzer${b.players === 1 ? "" : "s"}</span>` : ""}</div>
     ${body}
     <div class="row"><a class="btn mint" href="https://wa.me/?text=${encodeURIComponent(inviteText(k))}" target="_blank" rel="noopener">Invite on WhatsApp</a><button class="btn ghost" type="button" data-copy="${k.id}">Copy link</button></div>
     <button class="linkbtn" type="button" data-leave="${k.id}">Leave this class</button></div>`;
+}
+function pickerBlock(k){
+  const list = pick.county ? schoolLists[pick.county] : null;
+  const areas = list && pick.county === "Dublin" ? [...new Set(list.map(s => s[3]))].sort((a, b) => { const na = a.match(/^Dublin (\d+)/), nb = b.match(/^Dublin (\d+)/); return na && nb ? (+na[1] - +nb[1]) || a.localeCompare(b) : na ? -1 : nb ? 1 : a.localeCompare(b); }) : [];
+  const q = (pick.q || "").toLowerCase().trim();
+  const shown = list ? list.filter(s => (!areas.length || !pick.area || s[3] === pick.area) && (!q || (s[1] + " " + s[2] + " " + s[3]).toLowerCase().includes(q))) : [];
+  const sch = list && list.find(s => s[0] === pick.roll);
+  const years = sch ? YEARS.filter(([y]) => sch[4] === "junior" ? ["JI", "SI", "1", "2"].includes(y) : sch[4] === "senior" ? ["3", "4", "5", "6"].includes(y) : true) : [];
+  const needArea = areas.length && !pick.area && !q;
+  return `<div class="classbox picker"><b>🏆 Find ${esc(k.name)}'s school and class</b>
+    ${pick.msg ? `<p class="banner">${esc(pick.msg)}</p>` : ""}
+    <label for="pkCounty">County</label>
+    <select id="pkCounty"><option value="">Choose a county…</option>${COUNTIES.map(c => `<option${c === pick.county ? " selected" : ""}>${c}</option>`).join("")}</select>
+    ${pick.county && !list ? `<p class="small muted">Loading schools in ${esc(pick.county)}…</p>` : ""}
+    ${areas.length ? `<label for="pkArea">Area</label><select id="pkArea"><option value="">All Dublin areas</option>${areas.map(a => `<option${a === pick.area ? " selected" : ""}>${esc(a)}</option>`).join("")}</select>` : ""}
+    ${list ? `<label for="pkSearch">Search by school or town</label><input id="pkSearch" value="${esc(pick.q || "")}" placeholder="e.g. Brigid's or Foxrock" autocomplete="off">
+      ${needArea ? `<p class="small muted">Pick an area or type part of the school's name.</p>` :
+        `<label for="pkSchool">School <span class="muted small">(${shown.length})</span></label>
+         <select id="pkSchool" size="${Math.min(8, Math.max(3, shown.length))}">${shown.map(s => `<option value="${s[0]}"${s[0] === pick.roll ? " selected" : ""}>${esc(s[1])}${cleanTown(s[2]) ? " – " + esc(cleanTown(s[2])) : ""}</option>`).join("")}</select>`}` : ""}
+    ${sch ? `<label for="pkYear">Class</label><select id="pkYear"><option value="">Choose…</option>${years.map(([y, n]) => `<option value="${y}"${y === pick.year ? " selected" : ""}>${n}</option>`).join("")}</select>
+      <label for="pkLabel">Class name <span class="muted small">(only if there's more than one ${esc(yearName(pick.year) || "class")}, e.g. Ms Byrne or 1A)</span></label>
+      <input id="pkLabel" maxlength="30" value="${esc(pick.label || "")}" placeholder="Leave blank if there's just one">` : ""}
+    <div class="row"><button class="btn mint" type="button" id="pkGo" ${sch && pick.year && !pick.busy ? "" : "disabled"}>${pick.busy ? "Setting up…" : "Join or start this class board"}</button>
+      <button class="linkbtn" type="button" id="pkCancel">Cancel</button></div>
+    <button class="linkbtn" type="button" id="pkNoSchool">School not listed? Start a class link without a school</button>
+  </div>`;
+}
+async function loadCounty(c){ if (schoolLists[c]) return; try { schoolLists[c] = await rpc("jq_school_list", { p_county: c }); } catch(e){ pick.msg = "Couldn't load the schools. Check your connection and try again."; pick.county = ""; } }
+function wirePicker(){
+  const k = pick && state.kids.find(x => x.id === pick.kid); if (!k || !$("#pkCounty")) return;
+  const redo = (focus) => { renderHome(); if (focus && $(focus)) { const el = $(focus); el.focus(); if (el.setSelectionRange && el.value) el.setSelectionRange(el.value.length, el.value.length); } };
+  $("#pkCounty").onchange = async e => { Object.assign(pick, { county: e.target.value, area: "", q: "", roll: "", year: "", msg: "" }); redo(); if (pick.county) { await loadCounty(pick.county); redo(); } };
+  if ($("#pkArea")) $("#pkArea").onchange = e => { Object.assign(pick, { area: e.target.value, roll: "", year: "" }); redo(); };
+  if ($("#pkSearch")) $("#pkSearch").oninput = e => { clearTimeout(wirePicker._t); const v = e.target.value; wirePicker._t = setTimeout(() => { pick.q = v; pick.roll = ""; redo("#pkSearch"); }, 250); };
+  if ($("#pkSchool")) $("#pkSchool").onchange = e => { pick.roll = e.target.value; pick.year = ""; redo(); };
+  if ($("#pkYear")) $("#pkYear").onchange = e => { pick.year = e.target.value; redo(); };
+  if ($("#pkLabel")) $("#pkLabel").oninput = e => { pick.label = e.target.value; };
+  $("#pkCancel").onclick = () => { pick = null; renderHome(); };
+  $("#pkNoSchool").onclick = async () => { pick.busy = true; redo();
+    try { const code = await rpc("jq_create_class"); await joinClass(k, code); pick = null; toast(`Class ${showCode(code)} is ready. Invite the other parents!`); await refreshBoards(); }
+    catch(e){ pick.busy = false; pick.msg = "Couldn't start a class just now. Check your connection and try again."; redo(); } };
+  $("#pkGo").onclick = async () => { pick.busy = true; redo();
+    try { const code = await rpc("jq_school_class", { p_roll: pick.roll, p_year: pick.year, p_label: (pick.label || "").trim() }); await joinClass(k, code); pick = null; await refreshBoards();
+      const info = (boards[k.classCode] || {}).info; toast(`${k.name} is on the ${classTitle(info) || "class"} board. Invite the other parents!`); }
+    catch(e){ pick.busy = false; pick.msg = "Couldn't set up the class board just now. Check your connection and try again."; redo(); } };
 }
 function speedBlock(k){ const s = state.speed[k.id]; if (!s || !s.length) return ""; return `<div class="small"><b>⚡ ${esc(k.name)}'s lightning maths:</b> ${s.map((r, i) => `${MEDALS[i]} ${secs(r.ms)}s`).join(" &nbsp;")}</div>`; }
 
@@ -195,10 +254,9 @@ function renderHome(){
   }
   list.querySelectorAll("[data-play]").forEach(b => b.onclick = () => startQuiz(state.kids.find(x => x.id === b.dataset.play)));
   list.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { if (b.dataset.sure) { const k = state.kids.find(x => x.id === b.dataset.del); if (k && k.classCode) rpc("jq_leave", { p_player: k.pid }).catch(() => {}); state.kids = state.kids.filter(x => x.id !== b.dataset.del); delete state.speed[b.dataset.del]; save(); renderHome(); } else { b.dataset.sure = "1"; b.textContent = "Tap again to remove"; } });
-  const kidOf = el => state.kids.find(x => x.id === el.dataset.mkclass || x.id === el.dataset.copy || x.id === el.dataset.leave);
-  list.querySelectorAll("[data-mkclass]").forEach(b => b.onclick = async () => { const k = kidOf(b); b.disabled = true; b.textContent = "Making your class link…";
-    try { const code = await rpc("jq_create_class"); await joinClass(k, code); toast(`Class ${showCode(code)} is ready. Invite the other parents!`); await refreshBoards(); }
-    catch(e){ b.disabled = false; b.textContent = "Start a class link"; toast("Couldn't make a class just now. Check your connection and try again."); } });
+  const kidOf = el => state.kids.find(x => x.id === el.dataset.copy || x.id === el.dataset.leave);
+  list.querySelectorAll("[data-pickstart]").forEach(b => b.onclick = () => { pick = { kid: b.dataset.pickstart, county: "", area: "", q: "", roll: "", year: "", label: "" }; renderHome(); });
+  wirePicker();
   list.querySelectorAll("[data-copy]").forEach(b => b.onclick = async () => { const k = kidOf(b);
     try { await navigator.clipboard.writeText(inviteText(k)); toast("Invite copied. Paste it into the class group chat."); }
     catch(e){ if (navigator.share) navigator.share({ title: "Junior Quizmaster class", text: inviteText(k) }).catch(() => {}); else toast(classLink(k.classCode)); } });
@@ -410,12 +468,15 @@ function confetti(n = 70){
 
 /* ---------------- Opening a class link from another parent ---------------- */
 const invited = cleanCode(new URLSearchParams(location.search).get("class"));
+let joinInfo = null;
+if (CODE_RE.test(invited)) rpc("jq_class_info", { p_code: invited }).then(i => { joinInfo = i; if (i && i.exists === false) renderJoin("That class link doesn't work. Ask the parent who sent it to share it again."); else renderJoin(); }).catch(() => {});
 function renderJoin(msg){
   const p = $("#joinPanel"); if (!CODE_RE.test(invited)) { p.hidden = true; return; }
   p.hidden = false;
   const kids = state.kids.map(k => `<div class="row" style="justify-content:space-between"><b>${esc(boardName(k))}</b>${k.classCode === invited ? `<span class="chip done">In this class ✓</span>` : `<button class="btn blue" type="button" data-joinkid="${k.id}">${k.classCode ? "Move to this class" : "Join"}</button>`}</div>`).join("");
   $("#joinBody").innerHTML = `${msg ? `<p class="banner">${esc(msg)}</p>` : ""}${kids ? `<p class="muted">Which child is in this class? Brothers and sisters can each be in their own class.</p>${kids}<p class="small muted">Or add another child:</p>` : `<p class="muted">Add your child to join the class board.</p>`}`;
-  $("#joinCode").textContent = showCode(invited);
+  $("#joinCode").textContent = joinInfo && joinInfo.school ? classTitle(joinInfo) : "class " + showCode(invited);
+  $("#joinPlace").textContent = joinInfo && joinInfo.school ? classPlace(joinInfo) : "";
   $("#joinBody").querySelectorAll("[data-joinkid]").forEach(b => b.onclick = async () => { const k = state.kids.find(x => x.id === b.dataset.joinkid); b.disabled = true;
     try { await joinClass(k, invited); toast(`${k.name} joined class ${showCode(invited)}!`); await refreshBoards(); renderJoin(); }
     catch(e){ renderJoin(e.message === "no_class" ? "That class link doesn't work. Ask the parent who sent it to share it again." : "Couldn't join just now. Check your connection and try again."); } });

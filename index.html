@@ -129,6 +129,10 @@ td.num,th.num{text-align:right}
 .heard .hl{background:var(--sun);border-radius:6px;padding:0 4px}
 .typefall{display:grid;gap:8px}
 .invite{background:#FFF7D6;border-color:var(--ink)}
+.picker label{font-weight:700;font-size:.95rem}
+.picker select,.picker input{width:100%}
+.picker select[size]{padding:4px;border-radius:12px}
+.picker select[size] option{padding:8px 6px;border-bottom:1px solid #eee;white-space:normal}
 .classbox{display:grid;gap:8px;border:2px dashed var(--ink-soft);border-radius:14px;padding:10px 12px;background:#fbf9ff}
 .boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .lab{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--ink-soft)}
@@ -257,7 +261,8 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
 
   <main id="home" class="wrap" style="gap:18px">
     <section class="card invite" id="joinPanel" hidden aria-labelledby="joinH">
-      <h2 id="joinH">🏆 You're invited to class <span id="joinCode"></span>!</h2>
+      <h2 id="joinH">🏆 You're invited to <span id="joinCode"></span>!</h2>
+      <p class="muted" id="joinPlace" style="margin-top:-6px"></p>
       <p>Another parent shared their class's Lightning maths challenge. The fastest maths answers go on a class board everyone can see.</p>
       <div id="joinBody" style="display:grid;gap:10px"></div>
       <form id="joinAdd" class="row">
@@ -316,7 +321,7 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
 <div id="toast" class="toast" hidden></div>
 <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
 
-<script src="content.js?v=202610171043"></script>
-<script src="app.js?v=202610171043"></script>
+<script src="content.js?v=202610171514"></script>
+<script src="app.js?v=202610171514"></script>
 </body>
 </html>
