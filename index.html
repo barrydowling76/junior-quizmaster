@@ -5,8 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3557E6">
 <title>Junior Quizmaster</title>
+<meta name="description" content="Five fun questions a day from Professor Quizzard. Kids answer out loud, then hear an amazing fact.">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quizmaster">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Baloo+2:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Luckiest+Guy&family=Baloo+2:wght@500;600;700;800&display=swap">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -122,6 +128,20 @@ td.num,th.num{text-align:right}
 .heard{min-height:3.2em;border:var(--bw) dashed var(--ink);border-radius:16px;padding:12px 14px;background:#fff;font-size:1.25rem;font-weight:600}
 .heard .hl{background:var(--sun);border-radius:6px;padding:0 4px}
 .typefall{display:grid;gap:8px}
+.brand{display:block;line-height:0;border-radius:50%}
+.brand:focus-visible{outline:3px solid var(--cobalt);outline-offset:3px}
+.badge text{paint-order:stroke fill}
+header.top{justify-content:center;position:relative;min-height:48px}
+.badge{width:190px;height:190px;display:block;transition:transform .2s}
+.brand:hover .badge{transform:rotate(-4deg) scale(1.03)}
+body.inquiz header.top .brand{display:none}
+#soundBtn{position:absolute;top:0;right:0;width:48px;height:48px;padding:0;font-size:1.3rem}
+.wizard{cursor:pointer}
+@media (max-width:520px){.badge{width:168px;height:168px}
+ .stage{grid-template-columns:110px minmax(0,1fr);justify-items:stretch;padding:14px}
+ .stage .wizard{max-width:110px}
+ .stage h1{display:none}
+ .bubble::before,.bubble::after{display:block}}
 body.inquiz .stage{grid-template-columns:96px minmax(0,1fr);justify-items:stretch;padding:12px}
 body.inquiz .wizard{max-width:96px}
 body.inquiz .stage h1{display:none}
@@ -131,12 +151,37 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
 </head>
 <body>
 <div class="wrap" id="app">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <!-- shared wizard hat -->
+    <symbol id="hat" viewBox="0 0 120 120">
+      <path d="M18 92 C34 70 44 44 58 20 C63 11 72 6 82 10 C76 13 72 20 72 30 C73 52 82 74 100 92 Z" fill="#3557E6" stroke="#2B1B4A" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M30 78 C48 84 74 84 92 78 L97 90 C74 97 46 97 24 90 Z" fill="#FFC43D" stroke="#2B1B4A" stroke-width="4" stroke-linejoin="round"/>
+      <ellipse cx="60" cy="94" rx="52" ry="11" fill="#2238A8" stroke="#2B1B4A" stroke-width="5"/>
+      <path d="M58 38 l4 9 10 1 -8 6 3 10 -9 -6 -9 6 3 -10 -8 -6 10 -1 Z" fill="#FFC43D" stroke="#2B1B4A" stroke-width="2.5" stroke-linejoin="round"/>
+      <circle cx="84" cy="11" r="7" fill="#FFC43D" stroke="#2B1B4A" stroke-width="3"/>
+      <path d="M44 66 a6 6 0 1 0 6 -8 a4.6 4.6 0 1 1 -6 8 Z" fill="#fff"/>
+    </symbol>
+    <symbol id="spark" viewBox="-10 -10 20 20"><path d="M0 -10 C1.5 -2 2 -1.5 10 0 C2 1.5 1.5 2 0 10 C-1.5 2 -2 1.5 -10 0 C-2 -1.5 -1.5 -2 0 -10Z" fill="#FFC43D" stroke="#2B1B4A" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <path id="arcA" d="M58 150 A102 102 0 0 1 262 150"/>
+  </defs></svg>
   <header class="top">
-    <div class="logo">Junior <span>Quizmaster</span></div>
+    <a href="./" class="brand" aria-label="Junior Quizmaster home"><svg class="badge" role="img" aria-label="Junior Quizmaster" viewBox="0 0 320 320">
+  <circle cx="160" cy="160" r="146" fill="#2B1B4A"/>
+  <circle cx="160" cy="156" r="140" fill="#3557E6" stroke="#2B1B4A" stroke-width="6"/>
+  <circle cx="160" cy="156" r="122" fill="none" stroke="#FFC43D" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
+  <g fill="#fff" opacity=".85"><circle cx="96" cy="196" r="2.5"/><circle cx="232" cy="110" r="2"/><circle cx="242" cy="196" r="2.5"/><circle cx="84" cy="120" r="2"/></g>
+  <text font-family="Luckiest Guy" font-size="34" letter-spacing="5" fill="#FFF1BF" stroke="#2B1B4A" stroke-width="7"><textPath href="#arcA" startOffset="50%" text-anchor="middle">JUNIOR</textPath></text>
+  <use href="#hat" x="88" y="76" width="144" height="144"/>
+  <use href="#spark" x="210" y="70" width="30" height="30"/>
+  <use href="#spark" x="76" y="150" width="20" height="20"/>
+  <!-- ribbon -->
+  <path d="M10 214 L46 214 L36 234 L46 254 L4 254 Z" fill="#C93A30" stroke="#2B1B4A" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M310 214 L274 214 L284 234 L274 254 L316 254 Z" fill="#C93A30" stroke="#2B1B4A" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M28 202 Q160 226 292 202 L292 252 Q160 276 28 252 Z" fill="#FF5A4E" stroke="#2B1B4A" stroke-width="6" stroke-linejoin="round"/>
+  <text x="160" y="249" text-anchor="middle" font-family="Luckiest Guy" font-size="38" letter-spacing="1.5" fill="#FFC43D" stroke="#2B1B4A" stroke-width="7">QUIZMASTER</text>
+</svg></a>
     <div class="row">
-      <label for="voiceSel" class="small" style="font-weight:700">Wizard voice</label>
-      <select id="voiceSel" style="max-width:190px;padding:7px 10px"><option>Default voice</option></select>
-      <button class="btn ghost" id="soundBtn" type="button" aria-pressed="true">🔊 Voice on</button>
+      <button class="btn ghost" id="soundBtn" type="button" aria-pressed="true" aria-label="Wizard voice on" title="Wizard voice on">🔊</button>
     </div>
   </header>
 
@@ -239,391 +284,7 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
 <div id="toast" class="toast" hidden></div>
 <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
 
-<script>
-/* ---------------- Question bank (offline fallback) ---------------- */
-const BANK = {
-  a: [ // ages 4-5
-    {q:"How many legs does a dog have?",a:"4"},{q:"What colour is a banana?",a:"yellow"},{q:"What animal says moo?",a:"cow",x:["a cow","cows"]},
-    {q:"What is one plus one?",a:"2"},{q:"What colour is grass?",a:"green"},{q:"What shape has three sides?",a:"triangle"},
-    {q:"Which animal has a very long neck?",a:"giraffe"},{q:"What do bees make?",a:"honey"},{q:"How many eyes do you have?",a:"2"},
-    {q:"What comes after the number four?",a:"5"},{q:"What colour is the sky on a sunny day?",a:"blue"},{q:"What baby animal is called a kitten?",a:"cat",x:["a cat"]},
-    {q:"What do you wear on your feet?",a:"shoes",x:["socks","shoe","wellies","boots"]},{q:"Which fruit is red and grows on trees, and keeps the doctor away?",a:"apple"},
-    {q:"What is two plus two?",a:"4"},{q:"Which animal hops and has a pouch?",a:"kangaroo"},{q:"What is frozen water called?",a:"ice"},
-    {q:"How many wheels does a bicycle have?",a:"2"},{q:"What colour is a carrot?",a:"orange"},{q:"What sound does a duck make?",a:"quack"}
-  ],
-  b: [ // ages 6-7
-    {q:"What is five plus six?",a:"11"},{q:"How many days are in a week?",a:"7"},{q:"What is the biggest planet in our solar system?",a:"Jupiter"},
-    {q:"What do caterpillars turn into?",a:"butterflies",x:["butterfly","a butterfly","moths","moth"]},{q:"What is the capital city of Ireland?",a:"Dublin"},
-    {q:"How many legs does a spider have?",a:"8"},{q:"What is ten take away three?",a:"7"},{q:"What gas do we breathe in to stay alive?",a:"oxygen"},
-    {q:"Which is the coldest season of the year?",a:"winter"},{q:"How many months are in a year?",a:"12"},{q:"What is the opposite of hot?",a:"cold"},
-    {q:"Which animal is known as the king of the jungle?",a:"lion"},{q:"What star gives us daylight?",a:"the sun",x:["sun"]},{q:"What is double six?",a:"12"},
-    {q:"Which bird can't fly but swims in icy seas?",a:"penguin"},{q:"How many sides does a square have?",a:"4"},{q:"What do plants need from the sky to grow, as well as rain?",a:"sunlight",x:["sun","light","the sun","sunshine"]},
-    {q:"What is the largest ocean on Earth?",a:"Pacific",x:["pacific ocean","the pacific"]},{q:"What is three times three?",a:"9"},{q:"What colour do you get when you mix blue and yellow?",a:"green"}
-  ],
-  c: [ // ages 8-9
-    {q:"What is seven times eight?",a:"56"},{q:"Which planet is known as the Red Planet?",a:"Mars"},{q:"What is the longest river in Ireland?",a:"Shannon",x:["the shannon","river shannon"]},
-    {q:"How many minutes are in an hour?",a:"60"},{q:"What is the hardest natural substance?",a:"diamond"},{q:"What is the plural of mouse?",a:"mice"},
-    {q:"How many continents are there?",a:"7"},{q:"What is 100 divided by 4?",a:"25"},{q:"Which organ pumps blood around your body?",a:"heart",x:["the heart"]},
-    {q:"What is the closest star to Earth?",a:"the sun",x:["sun"]},{q:"What is half of 50?",a:"25"},{q:"What do we call animals that eat only plants?",a:"herbivores",x:["herbivore"]},
-    {q:"How many sides does a hexagon have?",a:"6"},{q:"Which ocean lies to the west of Ireland?",a:"Atlantic",x:["atlantic ocean","the atlantic"]},{q:"What is nine times nine?",a:"81"},
-    {q:"What is water made of: hydrogen and what?",a:"oxygen"},{q:"What is the tallest animal in the world?",a:"giraffe"},{q:"How many players are on a hurling team on the pitch?",a:"15"},
-    {q:"What is the opposite of ancient?",a:"modern",x:["new"]},{q:"Which planet has the biggest rings?",a:"Saturn"}
-  ],
-  d: [ // ages 10-12
-    {q:"What is 12 times 12?",a:"144"},{q:"What is the chemical symbol for gold?",a:"Au"},{q:"How many bones are in an adult human body?",a:"206"},
-    {q:"What is the capital city of Australia?",a:"Canberra"},{q:"What is 15 percent of 200?",a:"30"},{q:"What force keeps us on the ground?",a:"gravity"},
-    {q:"Who wrote the play Romeo and Juliet?",a:"Shakespeare",x:["william shakespeare"]},{q:"What is the largest mammal on Earth?",a:"blue whale",x:["the blue whale","whale"]},
-    {q:"What is the square root of 81?",a:"9"},{q:"Which county is the Burren in?",a:"Clare",x:["county clare","co clare"]},{q:"What process do plants use to make food from sunlight?",a:"photosynthesis"},
-    {q:"How many degrees are in a right angle?",a:"90"},{q:"What is the smallest prime number?",a:"2"},{q:"Which planet is closest to the Sun?",a:"Mercury"},
-    {q:"What is the boiling point of water in degrees Celsius?",a:"100"},{q:"What is the past tense of the word swim?",a:"swam"},{q:"What is three quarters of 40?",a:"30"},
-    {q:"Which is the highest mountain in Ireland?",a:"Carrauntoohil",x:["carrantuohill","carrauntuohill","carrantouhill"]},{q:"What do you call a word that means the same as another word?",a:"synonym"},
-    {q:"Which part of the cell holds its DNA?",a:"nucleus",x:["the nucleus"]}
-  ]
-};
-const FACTS = [
-  "Carrots were mostly purple long ago! Orange carrots became popular later, and they're packed with vitamin A that helps your eyes work well in the dark.",
-  "A strawberry wears its seeds on the outside — about 200 tiny seeds on every berry!",
-  "Sea otters hold hands while they sleep so they don't float away from each other. Friendship goals!",
-  "Bananas are slightly radioactive, but totally safe — you'd need to eat millions at once for it to matter. Meanwhile they give you lovely energy for playing.",
-  "Broccoli is actually a bunch of tiny flowers that haven't opened yet. When you eat broccoli you're eating a bouquet!",
-  "Honey never goes off. Archaeologists found pots of honey in ancient Egyptian tombs that were still good after 3,000 years.",
-  "Your brain uses about a fifth of all the energy your body makes — so breakfast really is brain fuel.",
-  "Octopuses have three hearts and blue blood.",
-  "Peas are one of the few vegetables that are also seeds. Every pea could grow into a whole new pea plant!",
-  "Cows have best friends and get a bit stressed when they're separated from them.",
-  "A cloud can weigh as much as 100 elephants, yet it floats because the water is spread out into tiny droplets.",
-  "Spinach has iron that helps carry oxygen around your body — that's why the old cartoon sailor ate it to get strong.",
-  "Butterflies taste with their feet!",
-  "Kiwi fruit have more vitamin C than oranges. Vitamin C helps your body heal cuts and fight off colds.",
-  "Elephants can 'hear' with their feet by feeling rumbles in the ground from far away.",
-  "When you laugh with friends, your body releases chemicals that make you feel happier and calmer. Laughing is good for you!",
-  "Ireland has no native snakes at all.",
-  "Apples float in water because about a quarter of an apple is air. That's why bobbing for apples works!",
-  "A group of flamingos is called a flamboyance. Flamingos are pink because of the shrimp and algae they eat.",
-  "Your bones are about five times stronger than steel of the same weight. Milk, yoghurt and leafy greens help keep them strong.",
-  "Sweet potatoes, pumpkins and carrots are orange because of beta-carotene, which your body turns into vitamin A for healthy skin and eyes.",
-  "Hummingbirds are the only birds that can fly backwards.",
-  "Dogs' nose prints are unique, just like human fingerprints.",
-  "Saying thank you and noticing good things each day can actually make people feel happier — scientists have tested it!",
-  "Blueberries are one of the few naturally blue foods, and they're full of stuff that's good for your brain and memory.",
-  "Slow and steady: a snail can sleep for up to three years when the weather is too dry.",
-  "Avocados are actually a type of berry, but strawberries aren't true berries at all!",
-  "The Eiffel Tower grows about 15 cm taller in summer because metal expands in the heat.",
-  "Tomatoes were once thought to be poisonous in Europe. Now they're in pizza, soup and salads all over the world.",
-  "Penguins sometimes give each other pebbles as presents."
-];
-const CHEERS = [
-  "Ka-POW! {n} the Brain Wizard strikes again!","Abracadabra, {n}! That's spot on!","Hold your hats — Professor {n} has the answer!",
-  "{n}, you absolute rocket! Correct!","Sparkles everywhere! Well done, {n} the Magnificent!","Give that brain a gold star, {n}!",
-  "Woohoo! Captain {n} lands another one!","Is that a genius I see? Yes — it's {n}!","Correct-a-mundo, {n}!",
-  "Brilliant, {n}! Even my beard is impressed!","Swish and score! Nice one, {n}!","Thunder and lightning — {n} got it right!",
-  "{n}-tastic! That's the one!","Top marks, Wizard {n}!","My wand is fizzing — {n} nailed it!","High five, {n}! You're on fire!",
-  "Grand job altogether, {n}!","Lightning brain alert! {n} is unstoppable!","Bravo, {n} the Brilliant!","Ding ding ding! {n} wins the round!",
-  "Shazam! Right again, {n}!","Hats off to you, {n}! Literally — mine just flew off!"
-];
-const OOPS = [
-  "Ooh, so close, {n}! The answer was {a}. Keep that brain buzzing!",
-  "Good try, {n}! It was {a}. Now you'll never forget it!",
-  "Nice thinking, {n}! The answer is {a}. On to the next one!",
-  "Not this time, {n} — it's {a}. Wizards learn something new every day too!"
-];
-const FEEDBACK = [
-  "Every quiz makes your brain a little bit stronger. Tomorrow is a brand-new chance!",
-  "One right is a great start! Your brain was working hard today, and I'm proud of you.",
-  "Two right — your brain is warming up nicely! Keep asking questions about the world.",
-  "Three out of five! That's more than half. You're a proper quiz champion in the making.",
-  "Four out of five! Super thinking. You're nearly at wizard level!",
-  "A perfect five! Absolutely magical. I'll have to make tomorrow's spells extra tricky!"
-];
-
-/* ---------------- Helpers ---------------- */
-const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const todayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-const hash = s => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
-const band = age => age <= 5 ? "a" : age <= 7 ? "b" : age <= 9 ? "c" : "d";
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2600); }
-
-const NUMS = {zero:0,oh:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fourty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90};
-function wordsToNumbers(text){
-  const toks = text.split(" "); const out = []; let cur = null;
-  const flush = () => { if (cur !== null) { out.push(String(cur)); cur = null; } };
-  for (const t of toks) {
-    if (t in NUMS) { const v = NUMS[t]; if (cur !== null && ((cur >= 100 && cur % 100 === 0 && v < 100) || (cur % 100 >= 20 && cur % 10 === 0 && v < 10))) cur += v; else { flush(); cur = v; } }
-    else if (t === "hundred" && cur !== null) cur *= 100;
-    else if (t === "thousand" && cur !== null) cur *= 1000;
-    else if (t === "and" && cur !== null && cur >= 100) {}
-    else { flush(); out.push(t); }
-  }
-  flush(); return out.join(" ");
-}
-function norm(s){
-  let t = String(s).toLowerCase().replace(/[’']/g,"").replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
-  t = wordsToNumbers(t);
-  t = t.replace(/^(it s|its|it is|i think|um|uh|erm|maybe)\s+/,"").replace(/\b(a|an|the)\b/g," ").replace(/\s+/g," ").trim();
-  return t;
-}
-function lev(a,b){ const m=a.length,n=b.length; if(!m) return n; if(!n) return m; let p=[...Array(n+1).keys()];
-  for(let i=1;i<=m;i++){ const c=[i]; for(let j=1;j<=n;j++) c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1)); p=c; } return p[n]; }
-function localMatch(said, q){
-  const s = norm(said); if (!s) return false;
-  const accepted = [q.a, ...(q.x||q.accept||[])].map(norm).filter(Boolean);
-  for (const a of accepted) {
-    if (s === a) return true;
-    const sw = s.split(" "), aw = a.split(" ");
-    if (sw.length <= aw.length + 3 && (" "+s+" ").includes(" "+a+" ")) return true;
-    if (!/\d/.test(a) && a.length >= 5 && lev(s, a) <= (a.length >= 9 ? 2 : 1)) return true;
-    if (sw.length > 1 && !/\d/.test(a) && a.length >= 5 && sw.some(w => lev(w, a) <= 1)) return sw.length <= aw.length + 3;
-  }
-  return false;
-}
-// Pull out what follows "the answer is"
-const PHRASE = /\bthe\s+answer\s*(?:is|'s|s)\b[\s,:.-]*(.*)$/i;
-function extractAnswer(text){ const m = String(text).match(PHRASE); if (!m) return null; const a = m[1].replace(/[.!?]+$/,"").trim(); return a || null; }
-
-
-/* ---------------- Voice (text to speech) ---------------- */
-let voiceOn = true, voice = null, voiceList = [];
-// Rank the device's voices: natural/neural male British or Irish voices first, the old robotic ones last.
-function scoreVoice(v){
-  const n = v.name.toLowerCase(), l = (v.lang||"").toLowerCase(); let s = 0;
-  if (!l.startsWith("en")) return -99;
-  if (/en[-_](gb|ie)/.test(l)) s += 3; else if (/en[-_](au|nz|us)/.test(l)) s += 1;
-  if (/natural|neural|online|premium|enhanced|siri/.test(n)) s += 6;
-  if (/ryan|thomas|daniel|arthur|oliver|george|alfie|guy|connor|rishi|fred|eric|davis|christopher|brian|william|male/.test(n)) s += 4;
-  if (/female|samantha|karen|moira|tessa|sonia|libby|maisie|hazel|susan|kate|serena|emily|jenny|aria|zira|victoria|fiona|martha|catherine|emma/.test(n)) s -= 4;
-  if (/google uk english male/.test(n)) s += 3;
-  if (/espeak|compact|novelty|bad news|bells|boing|bubbles|cellos|whisper|zarvox|trinoids|jester|organ|superstar|wobble|albert|bahh/.test(n)) s -= 20;
-  return s;
-}
-function pickVoice(){
-  let vs = []; try { vs = speechSynthesis.getVoices() || []; } catch(e){}
-  voiceList = vs.filter(v => scoreVoice(v) > -50).sort((a,b) => scoreVoice(b) - scoreVoice(a));
-  let saved = null; try { saved = localStorage.getItem("jq-voice"); } catch(e){}
-  voice = voiceList.find(v => v.name === saved) || voiceList[0] || null;
-  const sel = $("#voiceSel"); if (!sel) return;
-  sel.innerHTML = voiceList.length ? voiceList.slice(0, 25).map(v => `<option value="${esc(v.name)}"${v === voice ? " selected" : ""}>${esc(v.name.replace(/^Microsoft |^Google /,""))}</option>`).join("") : `<option>Default voice</option>`;
-}
-try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch(e){}
-$("#voiceSel").addEventListener("change", e => { voice = voiceList.find(v => v.name === e.target.value) || voice; try { localStorage.setItem("jq-voice", voice.name); } catch(_){} say("Ahh, hello there! I am Professor Quizzard, keeper of a thousand riddles.", false); });
-function say(text, show = true){
-  if (show) $("#bubbleText").textContent = text;
-  const stage = $("#stage");
-  return new Promise(res => {
-    if (!voiceOn || !window.speechSynthesis) { res(); return; }
-    try {
-      speechSynthesis.cancel();
-      // Old-wizard delivery: deeper, slower, with breathing room between sentences.
-      const clean = text.replace(/[🎉⭐✨🧙✅💡🔁]/gu,"").replace(/—/g, ", ");
-      const u = new SpeechSynthesisUtterance(clean);
-      const natural = voice && /natural|neural|online|premium|enhanced|siri/i.test(voice.name);
-      if (voice) { u.voice = voice; u.lang = voice.lang; }
-      u.rate = natural ? 0.9 : 0.85; u.pitch = natural ? 0.8 : 0.65;
-      u.onstart = () => stage.classList.add("talking");
-      u.onend = u.onerror = () => { stage.classList.remove("talking"); res(); };
-      speechSynthesis.speak(u);
-      // Safety nets only: resolve if speech never starts, or after a long cap. Normal path is onend.
-      let started = false; const ons = u.onstart; u.onstart = () => { started = true; ons(); };
-      setTimeout(() => { if (!started) { stage.classList.remove("talking"); res(); } }, 2500);
-      setTimeout(() => { stage.classList.remove("talking"); res(); }, 40000);
-    } catch(e){ res(); }
-  });
-}
-$("#soundBtn").addEventListener("click", e => {
-  voiceOn = !voiceOn; e.currentTarget.setAttribute("aria-pressed", voiceOn);
-  e.currentTarget.textContent = voiceOn ? "🔊 Voice on" : "🔇 Voice off";
-  if (!voiceOn) try { speechSynthesis.cancel(); } catch(_){}
-});
-
-
-/* ---------------- Confetti ---------------- */
-function confetti(n = 70){
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const c = $("#confetti"), x = c.getContext("2d"); c.width = innerWidth; c.height = innerHeight;
-  const cols = ["#FFC43D","#FF5A4E","#22B98C","#3557E6","#9B66F0"];
-  const ps = Array.from({length:n}, () => ({ x: innerWidth/2 + (Math.random()-.5)*120, y: innerHeight*.35, vx: (Math.random()-.5)*12, vy: -Math.random()*12-4, r: Math.random()*6+4, c: cols[Math.floor(Math.random()*cols.length)], a: Math.random()*6 }));
-  let f = 0; (function tick(){ x.clearRect(0,0,c.width,c.height); for (const p of ps) { p.vy += .35; p.x += p.vx; p.y += p.vy; p.a += .2; x.save(); x.translate(p.x,p.y); x.rotate(p.a); x.fillStyle = p.c; x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6); x.restore(); } if (++f < 110) requestAnimationFrame(tick); else x.clearRect(0,0,c.width,c.height); })();
-}
-
-
-/* ---------------- Local storage ---------------- */
-let state = { kids: [], reminder: "08:15", remDays: "school", history: {} };
-try { const s = localStorage.getItem("jq-state"); if (s) state = Object.assign(state, JSON.parse(s)); } catch(e){}
-function save(){ try { localStorage.setItem("jq-state", JSON.stringify(state)); } catch(e){} }
-const tidyName = s => s.trim().replace(/\s+/g," ").slice(0,20).replace(/(^|[\s'\-])([a-zà-ÿ])/g, (m,p,c) => p + c.toUpperCase());
-let editingId = null;
-
-/* ---------------- Home ---------------- */
-function renderHome(){
-  $("#todayDate").textContent = new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"short"});
-  const list = $("#kidList"); const today = state.history[todayKey()] || {};
-  if (!state.kids.length) {
-    list.innerHTML = `<div class="kid" style="grid-column:1/-1;background:var(--lilac)"><span class="name">No quizzers yet</span><p>Add your child's first name and age below, then tap their name to start.</p><button class="btn blue" type="button" id="tryDemo">Try a sample quiz first</button></div>`;
-    $("#tryDemo").onclick = () => startQuiz({ id:"demo", name:"Superstar", age:7 });
-  } else {
-    list.innerHTML = state.kids.map(k => {
-      const r = today[k.id];
-      if (editingId === k.id) return `<form class="kid" data-editform="${k.id}">
-        <label for="en-${k.id}">First name</label><input id="en-${k.id}" maxlength="20" required value="${esc(k.name)}">
-        <label for="ea-${k.id}">Age</label><select id="ea-${k.id}">${[4,5,6,7,8,9,10,11,12].map(a=>`<option${a===k.age?" selected":""}>${a}</option>`).join("")}</select>
-        <div class="row"><button class="btn blue" type="submit">Save</button><button class="linkbtn" type="button" data-cancel="1">Cancel</button></div></form>`;
-      return `<div class="kid">
-        <div class="row" style="justify-content:space-between"><span class="name">${esc(k.name)}</span><span class="chip">Age ${k.age}</span></div>
-        ${r ? `<span class="chip done">Done today · ${r.score}/5</span>` : `<span class="chip">5 questions waiting</span>`}
-        <button class="btn ${r ? "ghost" : "blue"}" type="button" data-play="${k.id}">${r ? "Play again for fun" : "▶ Play now"}</button>
-        <div class="row" style="gap:14px"><button class="linkbtn" type="button" data-edit="${k.id}">Edit name or age</button><button class="linkbtn" type="button" data-del="${k.id}">Remove</button></div>
-      </div>`;
-    }).join("");
-  }
-  list.querySelectorAll("[data-play]").forEach(b => b.onclick = () => startQuiz(state.kids.find(x => x.id === b.dataset.play)));
-  list.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { if (b.dataset.sure) { state.kids = state.kids.filter(x => x.id !== b.dataset.del); save(); renderHome(); } else { b.dataset.sure = "1"; b.textContent = "Tap again to remove"; } });
-  list.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { editingId = b.dataset.edit; renderHome(); });
-  list.querySelectorAll("[data-cancel]").forEach(b => b.onclick = () => { editingId = null; renderHome(); });
-  list.querySelectorAll("[data-editform]").forEach(f => f.addEventListener("submit", e => { e.preventDefault(); const id = f.dataset.editform; const k = state.kids.find(x => x.id === id); const name = tidyName($("#en-" + id).value); if (!k || !name) return; k.name = name; k.age = +$("#ea-" + id).value; editingId = null; save(); renderHome(); }));
-  $("#remTime").value = state.reminder; $("#remDays").value = state.remDays || "school";
-}
-$("#addKid").addEventListener("submit", e => { e.preventDefault(); const name = tidyName($("#kidName").value); if (!name) return;
-  state.kids.push({ id: "k" + Math.random().toString(36).slice(2,8), name, age: +$("#kidAge").value }); $("#kidName").value = ""; save(); renderHome();
-  say(`Welcome to the quiz, ${name}! Your first five questions are ready whenever you are.`); });
-$("#remTime").addEventListener("change", e => { state.reminder = e.target.value; save(); });
-$("#remDays").addEventListener("change", e => { state.remDays = e.target.value; save(); });
-$("#remBtn").addEventListener("click", () => {
-  const [hh, mm] = (state.reminder || "08:15").split(":"); const start = `${todayKey().replace(/-/g,"")}T${hh}${mm}00`;
-  const stamp = new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
-  const rule = state.remDays === "all" ? "RRULE:FREQ=DAILY" : "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR";
-  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Junior Quizmaster//EN","BEGIN:VEVENT",`UID:jq-${Date.now()}@juniorquizmaster`,`DTSTAMP:${stamp}`,`DTSTART:${start}`,"DURATION:PT10M",rule,
-    "SUMMARY:Junior Quizmaster time!",`DESCRIPTION:Professor Quizzard has 5 new questions ready. ${location.href.split("#")[0]}`,`URL:${location.href.split("#")[0]}`,
-    "BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:Quiz time!","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); a.download = "junior-quizmaster-daily.ics"; document.body.appendChild(a); a.click(); a.remove();
-  toast("Open the calendar file to add your daily alert");
-});
-
-/* ---------------- Questions & facts (built-in for the test version) ---------------- */
-function getQuestions(age){ const key = `${todayKey()}_a${age}`; const pool = BANK[band(age)]; const start = hash(key) % pool.length; const steps = [1,3,7,9,11,13].filter(s => pool.length % s !== 0 || s === 1); const step = steps[hash(key+"s") % steps.length];
-  const qs = []; for (let i = 0; qs.length < 5 && i < pool.length * 2; i++) { const q = pool[(start + i*step) % pool.length]; if (!qs.includes(q)) qs.push(q); } return qs; }
-const getFact = () => FACTS[hash(todayKey() + "f") % FACTS.length];
-
-/* ---------------- Listening ---------------- */
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const canListen = !!SR && window.isSecureContext;
-let rec = null, listening = false, wantListen = false, heardText = "", onHeard = null, silenceTimer = null;
-function startListening(handler){
-  onHeard = handler; heardText = ""; wantListen = true;
-  if (!canListen) return false;
-  if (rec) { try { rec.abort(); } catch(e){} }
-  rec = new SR(); rec.lang = /^en/i.test(navigator.language) ? navigator.language : "en-IE"; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1;
-  rec.onstart = () => { listening = true; paintTalk(); };
-  rec.onresult = ev => { let t = ""; for (const r of ev.results) t += r[0].transcript + " "; heardText = t.trim(); onHeard && onHeard(heardText, false); clearTimeout(silenceTimer); silenceTimer = setTimeout(() => onHeard && onHeard(heardText, true), 1400); };
-  rec.onerror = ev => { if (ev.error === "not-allowed" || ev.error === "service-not-allowed") { wantListen = false; toast("Please allow the microphone so the wizard can hear you."); showTyping(); } };
-  rec.onend = () => { listening = false; paintTalk(); if (wantListen) { try { rec.start(); } catch(e){} } };
-  try { rec.start(); return true; } catch(e){ return false; }
-}
-function stopListening(){ wantListen = false; clearTimeout(silenceTimer); if (rec) { try { rec.stop(); } catch(e){} } listening = false; paintTalk(); }
-function paintTalk(){ const b = $("#talk"); if (!b) return; b.classList.toggle("on", listening); b.querySelector(".lbl").textContent = listening ? "Listening… say “The answer is…”" : "Tap and talk"; }
-
-/* ---------------- Quiz flow ---------------- */
-let Q = null; const card = () => $("#quizCard");
-function showView(v){ document.body.classList.toggle("inquiz", v === "quiz"); $("#home").hidden = v !== "home"; $("#quiz").hidden = v !== "quiz"; scrollTo({ top: 0, behavior: "smooth" }); }
-$("#quitQuiz").onclick = () => { stopListening(); try { speechSynthesis.cancel(); } catch(e){} Q = null; showView("home"); renderHome(); };
-function dots(){ return `<div class="progress" aria-label="Question ${Q.i+1} of 5">${Q.qs.map((_,j)=>`<span class="dot ${j<Q.results.length?(Q.results[j].ok?"ok":"no"):j===Q.i?"now":""}">${j+1}</span>`).join("")}</div>`; }
-
-function startQuiz(kid){
-  Q = { kid, qs: getQuestions(kid.age), i: 0, results: [], dayIdx: hash(todayKey()) };
-  showView("quiz");
-  card().innerHTML = `${dots()}<h2>Ready, ${esc(kid.name)}?</h2>
-    <p>Here's the magic rule: think out loud as much as you like, but your answer only counts when you say <b>"The answer is…"</b> and then your answer.</p>
-    <p class="muted small">Grown-ups: when your phone asks, allow the microphone. After each question the wizard listens by himself — no typing needed.</p>
-    <button class="btn big blue" id="go" type="button">I'm ready! ✨</button>`;
-  $("#go").onclick = () => {
-    // A tap here unlocks the voice and the microphone for the rest of the quiz.
-    if (canListen) { startListening(() => {}); setTimeout(() => { stopListening(); askQuestion(); }, 350); } else askQuestion();
-  };
-  say(`Ready, ${kid.name}? Remember the magic rule! Your answer only counts when you say, the answer is, and then your answer.`);
-}
-
-function askQuestion(){
-  const q = Q.qs[Q.i]; let done = false;
-  card().innerHTML = `${dots()}
-    <span class="chip" style="justify-self:start">Question ${Q.i+1} of 5</span>
-    <p class="qtext">${esc(q.q)}</p>
-    <button class="btn talk wait" id="talk" type="button"><span class="ic">🎤</span><span class="lbl">Wizard is asking…</span></button>
-    <div class="heard" id="heard" aria-live="polite"><span class="muted">I'll show what I hear here.</span></div>
-    <div class="row"><button class="btn ghost" id="repeat" type="button">🔁 Hear the question again</button><button class="linkbtn" id="typeLink" type="button">Can't talk right now? Type instead</button></div>
-    <div class="typefall" id="typeBox" hidden><input id="ans" autocomplete="off" placeholder="The answer is…" aria-label="Type your answer, starting with The answer is"><button class="btn mint" id="lockIn" type="button">Lock in</button></div>`;
-  const handle = (text, final) => {
-    if (done) return;
-    const a = extractAnswer(text);
-    $("#heard").innerHTML = a ? `${esc(text.slice(0, text.toLowerCase().lastIndexOf("answer")))}<span class="hl">answer ${esc(text.slice(text.toLowerCase().lastIndexOf("answer")+6))}</span>` : esc(text) || `<span class="muted">I'll show what I hear here.</span>`;
-    if (a && final) { done = true; stopListening(); submitAnswer(a); }
-    else if (!a && final && text.split(" ").length >= 2) { $("#heard").innerHTML += `<div class="small muted">Remember to say “The answer is…”</div>`; }
-  };
-  const listen = () => { if (done) return; $("#talk").classList.remove("wait"); if (!startListening(handle)) showTyping(); };
-  $("#talk").onclick = () => { if (listening) stopListening(); else { try { speechSynthesis.cancel(); } catch(e){} listen(); } };
-  $("#repeat").onclick = () => { stopListening(); $("#talk").classList.add("wait"); say(q.q).then(listen); };
-  $("#typeLink").onclick = showTyping;
-  const typed = () => { const a = extractAnswer($("#ans").value) || $("#ans").value.trim(); if (a && !done) { done = true; stopListening(); submitAnswer(a); } };
-  $("#lockIn").onclick = typed; $("#ans").addEventListener("keydown", e => { if (e.key === "Enter") typed(); });
-  if (!canListen) showTyping();
-  say(`Question ${Q.i+1}. ${q.q}`).then(() => { if (Q && !done && canListen) listen(); });
-}
-function showTyping(){ const b = $("#typeBox"); if (b) { b.hidden = false; $("#ans").focus(); } }
-
-let submitting = false;
-async function submitAnswer(said){
-  if (submitting || !Q) return; submitting = true;
-  const q = Q.qs[Q.i]; const ok = localMatch(said, q); Q.results.push({ ok, said });
-  const n = Q.kid.name; let line;
-  if (ok) { line = CHEERS[(Q.dayIdx + Q.i * 7 + hash(Q.kid.id)) % CHEERS.length].replace(/\{n\}/g, n); confetti(); }
-  else line = OOPS[(Q.dayIdx + Q.i) % OOPS.length].replace(/\{n\}/g, n).replace("{a}", q.a);
-  const last = Q.i === 4;
-  card().innerHTML = `${dots()}<p class="qtext" style="font-size:1.3rem">${esc(q.q)}</p>
-    <p class="muted">You said: “${esc(said)}”</p>
-    <div class="verdict ${ok?"ok":"no"}">${ok?"✅ ":"💡 "}${esc(line)}</div>
-    <button class="btn big ${last?"red":"blue"}" id="next" type="button">${last ? "See my score!" : "Next question →"}</button>`;
-  let moved = false; const go = () => { if (moved) return; moved = true; if (last) finish(); else { Q.i++; askQuestion(); } };
-  $("#next").onclick = go;
-  submitting = false;
-  await say(line);
-  // Hands-free: move on by itself after the wizard finishes talking.
-  if (Q && canListen) setTimeout(go, 1200);
-}
-
-async function finish(){
-  const score = Q.results.filter(r => r.ok).length;
-  if (Q.kid.id !== "demo") { const t = todayKey(); state.history[t] = state.history[t] || {}; if (!state.history[t][Q.kid.id]) state.history[t][Q.kid.id] = { score, at: Date.now() };
-    const keep = Object.keys(state.history).sort().slice(-60); state.history = Object.fromEntries(keep.map(k => [k, state.history[k]])); save(); }
-  const fb = FEEDBACK[score]; let answered = false;
-  card().innerHTML = `${dots()}<h2 style="text-align:center">${esc(Q.kid.name)}'s score</h2>
-    <div class="score">${score}<span style="font-size:2rem">/5</span></div>
-    <p style="text-align:center;font-size:1.15rem;font-weight:600">${esc(fb)}</p>
-    <div class="card" style="box-shadow:none;background:var(--lilac)">
-      <h3>Do you want to hear an interesting fact?</h3>
-      <p class="muted small">Just say “yes” or “no”.</p>
-      <button class="btn talk wait" id="talk" type="button"><span class="ic">🎤</span><span class="lbl">Wizard is talking…</span></button>
-      <div class="row"><button class="btn mint" id="yes" type="button">Yes please!</button><button class="btn ghost" id="no" type="button">Not today</button></div>
-    </div>`;
-  if (score >= 3) confetti(score === 5 ? 220 : 120);
-  const no = () => { if (answered) return; answered = true; stopListening(); say(`No problem! Brilliant playing today, ${Q.kid.name}. See you tomorrow for five new questions!`).then(() => $("#quitQuiz").click()); };
-  const yes = () => { if (answered) return; answered = true; stopListening(); tellFact(); };
-  $("#yes").onclick = yes; $("#no").onclick = no;
-  const handle = (text) => { const v = norm(text); if (/\b(yes|yeah|yep|yup|ok|okay|sure|please|yes please)\b/.test(v)) yes(); else if (/\b(no|nope|nah|no thanks)\b/.test(v)) no(); };
-  const listen = () => { $("#talk").classList.remove("wait"); startListening(handle); };
-  $("#talk").onclick = () => listening ? stopListening() : listen();
-  await say(`You got ${score} out of 5, ${Q.kid.name}! ${fb} Now, do you want to hear an interesting fact?`);
-  if (!answered && canListen) listen();
-}
-async function tellFact(){
-  const fact = getFact();
-  card().innerHTML = `<h2>Today's amazing fact ✨</h2><div class="fact">${esc(fact)}</div>
-    <p class="muted small">Grown-ups: a good one to chat about on the way home.</p>
-    <div class="row"><button class="btn ghost" id="again" type="button">🔁 Hear it again</button><button class="btn blue" id="done" type="button">All done</button></div>`;
-  $("#again").onclick = () => say(fact, false); $("#done").onclick = () => $("#quitQuiz").click();
-  await say("Here's an amazing fact! " + fact);
-}
-
-if (!canListen) $("#noVoice").hidden = false;
-state.kids.forEach(k => k.name = tidyName(k.name));
-renderHome();
-</script>
+<script src="content.js?v=202610170844"></script>
+<script src="app.js?v=202610170844"></script>
 </body>
 </html>
