@@ -62,3 +62,25 @@ $$;
 revoke execute on function public.jq_school_list(text), public.jq_class_info(text), public.jq_school_class(text, text, text) from public, authenticated;
 grant execute on function public.jq_school_list(text), public.jq_class_info(text), public.jq_school_class(text, text, text), public.jq_board(text) to anon;
 grant execute on function public.jq_create_class() to anon;      -- kept for "My school isn't listed"
+
+-- v2.1: attach a school to a class that was started before schools existed (keeps its members and times).
+-- If that school + year board already exists, the members and their times move onto it.
+create or replace function public.jq_set_class_school(p_code text, p_player uuid, p_roll text, p_year text, p_label text) returns text
+language plpgsql security definer set search_path = public as $$
+declare c text := upper(regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9]', '', 'g'));
+        lbl text := left(trim(coalesce(p_label, '')), 30); existing text;
+begin
+  if not exists (select 1 from players where id = p_player and class_code = c) then raise exception 'not in class'; end if;
+  if not exists (select 1 from schools where roll = p_roll) then raise exception 'unknown school'; end if;
+  if exists (select 1 from classes where code = c and roll is not null) then raise exception 'already has a school'; end if;
+  select code into existing from classes where roll = p_roll and year = p_year and lower(label) = lower(lbl);
+  if existing is null then
+    update classes set roll = p_roll, year = p_year, label = lbl where code = c;
+    return c;
+  end if;
+  update speed_runs set class_code = existing where class_code = c;
+  update players set class_code = existing, updated_at = now() where class_code = c;
+  return existing;
+end $$;
+revoke execute on function public.jq_set_class_school(text, uuid, text, text, text) from public, authenticated;
+grant execute on function public.jq_set_class_school(text, uuid, text, text, text) to anon;

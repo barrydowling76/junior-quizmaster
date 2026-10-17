@@ -1,5 +1,5 @@
 /* Junior Quizmaster — app logic. Content (questions, lines, name list) comes from content.js. */
-const AUDIO_VERSION = "202610171514";
+const AUDIO_VERSION = "202610171527";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pad = n => String(n).padStart(2, "0");
@@ -163,6 +163,7 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 function boardList(rows, empty){ return rows && rows.length ? `<ol class="board">${rows.map((r, i) => `<li><span>${MEDALS[i]}</span><b>${esc(r.name)}</b><span class="t">${secs(r.ms)}s</span></li>`).join("")}</ol>` : `<p class="small muted">${empty}</p>`; }
 function classBlock(k){
   if (k.id === "demo") return "";
+  if (pick && pick.kid === k.id) return pickerBlock(k);
   if (!k.classCode) {
     if (!pick || pick.kid !== k.id) return `<div class="classbox"><b>🏆 Class challenge</b><span class="small muted">Race classmates on Lightning maths. Pick ${esc(k.name)}'s school and class, then share the link with other parents.</span>
       <button class="btn mint" type="button" data-pickstart="${k.id}">Find ${esc(k.name)}'s school</button></div>`;
@@ -173,8 +174,11 @@ function classBlock(k){
     `<div class="boards"><div><span class="lab">This week</span>${boardList(b.week, "No times yet this week. Answer a maths question fast to get on the board!")}</div>
      <div><span class="lab">All-time</span>${boardList(b.alltime, "No times yet.")}</div></div>`;
   const info = b && b.info, title = classTitle(info);
+  const addSchool = b && !b.offline && !(info && info.school) ? `<button class="btn mint" type="button" data-pickstart="${k.id}">🏫 Add ${esc(k.name)}'s school &amp; class</button>
+    <span class="small muted">So other parents can see which school and class this board is for. ${esc(k.name)} keeps any times already on it.</span>` : "";
   return `<div class="classbox"><div class="row" style="justify-content:space-between;align-items:flex-start"><div style="display:grid;gap:2px;min-width:0"><b>🏆 ${esc(title || "Class " + showCode(k.classCode))}</b>
       <span class="small muted">${esc([classPlace(info), "code " + showCode(k.classCode)].filter(Boolean).join(" · "))}</span></div>${b && b.players ? `<span class="small muted">${b.players} quizzer${b.players === 1 ? "" : "s"}</span>` : ""}</div>
+    ${addSchool}
     ${body}
     <div class="row"><a class="btn mint" href="https://wa.me/?text=${encodeURIComponent(inviteText(k))}" target="_blank" rel="noopener">Invite on WhatsApp</a><button class="btn ghost" type="button" data-copy="${k.id}">Copy link</button></div>
     <button class="linkbtn" type="button" data-leave="${k.id}">Leave this class</button></div>`;
@@ -202,7 +206,7 @@ function pickerBlock(k){
       <input id="pkLabel" maxlength="30" value="${esc(pick.label || "")}" placeholder="Leave blank if there's just one">` : ""}
     <div class="row"><button class="btn mint" type="button" id="pkGo" ${sch && pick.year && !pick.busy ? "" : "disabled"}>${pick.busy ? "Setting up…" : "Join or start this class board"}</button>
       <button class="linkbtn" type="button" id="pkCancel">Cancel</button></div>
-    <button class="linkbtn" type="button" id="pkNoSchool">School not listed? Start a class link without a school</button>
+    ${k.classCode ? "" : `<button class="linkbtn" type="button" id="pkNoSchool">School not listed? Start a class link without a school</button>`}
   </div>`;
 }
 async function loadCounty(c){ if (schoolLists[c]) return; try { schoolLists[c] = await rpc("jq_school_list", { p_county: c }); } catch(e){ pick.msg = "Couldn't load the schools. Check your connection and try again."; pick.county = ""; } }
@@ -216,11 +220,18 @@ function wirePicker(){
   if ($("#pkYear")) $("#pkYear").onchange = e => { pick.year = e.target.value; redo(); };
   if ($("#pkLabel")) $("#pkLabel").oninput = e => { pick.label = e.target.value; };
   $("#pkCancel").onclick = () => { pick = null; renderHome(); };
-  $("#pkNoSchool").onclick = async () => { pick.busy = true; redo();
+  if ($("#pkNoSchool")) $("#pkNoSchool").onclick = async () => { pick.busy = true; redo();
     try { const code = await rpc("jq_create_class"); await joinClass(k, code); pick = null; toast(`Class ${showCode(code)} is ready. Invite the other parents!`); await refreshBoards(); }
     catch(e){ pick.busy = false; pick.msg = "Couldn't start a class just now. Check your connection and try again."; redo(); } };
   $("#pkGo").onclick = async () => { pick.busy = true; redo();
-    try { const code = await rpc("jq_school_class", { p_roll: pick.roll, p_year: pick.year, p_label: (pick.label || "").trim() }); await joinClass(k, code); pick = null; await refreshBoards();
+    try {
+      let code;
+      if (k.classCode) {   // already on a board started before schools existed: attach the school to it (keeps members and times)
+        const old = k.classCode;
+        code = await rpc("jq_set_class_school", { p_code: old, p_player: k.pid, p_roll: pick.roll, p_year: pick.year, p_label: (pick.label || "").trim() });
+        state.kids.forEach(x => { if (x.classCode === old) x.classCode = code; }); save();
+      } else { code = await rpc("jq_school_class", { p_roll: pick.roll, p_year: pick.year, p_label: (pick.label || "").trim() }); await joinClass(k, code); }
+      pick = null; await refreshBoards();
       const info = (boards[k.classCode] || {}).info; toast(`${k.name} is on the ${classTitle(info) || "class"} board. Invite the other parents!`); }
     catch(e){ pick.busy = false; pick.msg = "Couldn't set up the class board just now. Check your connection and try again."; redo(); } };
 }
@@ -487,6 +498,19 @@ $("#joinAdd").addEventListener("submit", async e => { e.preventDefault(); const 
   try { await joinClass(k, invited); toast(`${name} joined class ${showCode(invited)}!`); } catch(err){ renderJoin("Couldn't join just now. Check your connection and try again."); }
   await refreshBoards(); renderJoin(); speak(["l/welcome_pre", { name }, "l/welcome_post"], `${LINES.welcome_pre} ${name}! ${LINES.welcome_post}`); });
 $("#joinDone").onclick = () => { history.replaceState(null, "", appUrl()); $("#joinPanel").hidden = true; };
+
+/* ---------------- Stay up to date: phones and home-screen apps can hold an old copy ---------------- */
+async function checkForUpdate(){
+  try {
+    const v = (await (await fetch("version.json?t=" + Date.now(), { cache: "no-store" })).json()).v;
+    if (v && v !== AUDIO_VERSION) {
+      let last = 0; try { last = +sessionStorage.getItem("jq-reloaded") || 0; } catch(e){}
+      if (Date.now() - last > 60000) { try { sessionStorage.setItem("jq-reloaded", Date.now()); } catch(e){} location.reload(); }
+    }
+  } catch(e){}
+}
+checkForUpdate();
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && !Q) checkForUpdate(); });
 
 if (!canListen) $("#noVoice").hidden = false;
 state.kids.forEach(k => k.name = tidyName(k.name));

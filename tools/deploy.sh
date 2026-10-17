@@ -7,6 +7,7 @@ AV=$(date +%Y%m%d%H%M)
 python3 gen_all.py build santa --js-only > /dev/null                       # content.js + clips.json from content files
 sed -i -E "s/\?v=[0-9]+/?v=$AV/g" build/index.html
 sed "s/__AV__/$AV/" app.src.js > build/app.js
+echo "{\"v\": \"$AV\"}" > build/version.json
 node --check build/app.js
 python3 check_clips.py build                                            # every line the app can say is recorded
 node check_answers.js app.src.js build/content.js                       # answer matching: no wrong answers accepted
