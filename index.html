@@ -128,6 +128,16 @@ td.num,th.num{text-align:right}
 .heard{min-height:3.2em;border:var(--bw) dashed var(--ink);border-radius:16px;padding:12px 14px;background:#fff;font-size:1.25rem;font-weight:600}
 .heard .hl{background:var(--sun);border-radius:6px;padding:0 4px}
 .typefall{display:grid;gap:8px}
+.invite{background:#FFF7D6;border-color:var(--ink)}
+.classbox{display:grid;gap:8px;border:2px dashed var(--ink-soft);border-radius:14px;padding:10px 12px;background:#fbf9ff}
+.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.lab{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--ink-soft)}
+ol.board{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:4px;font-variant-numeric:tabular-nums}
+ol.board li{display:flex;gap:8px;align-items:center;min-width:0}
+ol.board li b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ol.board .t{font-weight:800;color:var(--cobalt)}
+.speednote{font-weight:800;color:var(--cobalt);font-size:1.1rem}
+a.btn{text-decoration:none}
 .remnudge{font:inherit;font-weight:700;text-align:left;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--lilac);border:2px dashed var(--ink-soft);border-radius:14px;padding:10px 14px;color:var(--ink);cursor:pointer}
 .remnudge b{color:var(--cobalt);margin-left:auto}
 .remnudge:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px}
@@ -246,6 +256,18 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
   <div id="noVoice" class="banner" hidden>This browser can't listen for answers. Open this page in <b>Chrome</b> (Android or computer) or <b>Safari</b> on iPhone/iPad. Answers can still be typed.</div>
 
   <main id="home" class="wrap" style="gap:18px">
+    <section class="card invite" id="joinPanel" hidden aria-labelledby="joinH">
+      <h2 id="joinH">🏆 You're invited to class <span id="joinCode"></span>!</h2>
+      <p>Another parent shared their class's Lightning maths challenge. The fastest maths answers go on a class board everyone can see.</p>
+      <div id="joinBody" style="display:grid;gap:10px"></div>
+      <form id="joinAdd" class="row">
+        <div style="display:grid;gap:4px;flex:2 1 140px"><label for="jName">First name</label><input id="jName" maxlength="20" required placeholder="e.g. Aoife"></div>
+        <div style="display:grid;gap:4px;flex:0 1 80px"><label for="jInitial">Initial</label><input id="jInitial" maxlength="1" placeholder="M"></div>
+        <div style="display:grid;gap:4px;flex:0 1 80px"><label for="jAge">Age</label><select id="jAge"><option>4</option><option>5</option><option>6</option><option selected>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
+        <button class="btn blue" type="submit" style="align-self:end">Add &amp; join</button>
+      </form>
+      <button class="linkbtn" id="joinDone" type="button">Done</button>
+    </section>
     <section class="card" aria-labelledby="todayH">
       <div class="row" style="justify-content:space-between">
         <h2 id="todayH">Today's quiz</h2>
@@ -275,11 +297,12 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
       <h2 id="addH">Add a quizzer</h2>
       <form id="addKid" class="row">
         <div style="display:grid;gap:4px;flex:2 1 160px"><label for="kidName">First name</label><input id="kidName" maxlength="20" required placeholder="e.g. Aoife"></div>
+        <div style="display:grid;gap:4px;flex:0 1 90px"><label for="kidInitial">Surname initial</label><input id="kidInitial" maxlength="1" placeholder="e.g. M" autocapitalize="characters"></div>
         <div style="display:grid;gap:4px;flex:1 1 90px"><label for="kidAge">Age</label>
           <select id="kidAge"><option>4</option><option>5</option><option>6</option><option selected>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></div>
         <button class="btn blue" type="submit" style="align-self:end">Add</button>
       </form>
-      <p class="small muted">Saved on this phone only in this test version.</p>
+      <p class="small muted">On a class board other parents see the first name and surname initial, like “Aoife M.”, and only the top 3 fastest maths times. Nothing else is shared.</p>
     </section>
 
     <p class="small muted" style="text-align:center">Test version · class leaderboard and parent logins come in the full app.</p>
@@ -293,7 +316,7 @@ body.inquiz .bubble::before,body.inquiz .bubble::after{display:block}
 <div id="toast" class="toast" hidden></div>
 <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
 
-<script src="content.js?v=202610170931"></script>
-<script src="app.js?v=202610170931"></script>
+<script src="content.js?v=202610171043"></script>
+<script src="app.js?v=202610171043"></script>
 </body>
 </html>

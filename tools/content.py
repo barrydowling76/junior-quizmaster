@@ -176,5 +176,7 @@ LINES = {
  "fact_bye": "See you tomorrow for five brand new questions!",
  "bye_pre": "No problem!", "bye_post": "Brilliant playing today. See you tomorrow for five new questions!",
  "demo": "Ahh, hello there! I am Professor Quizzard, keeper of a thousand riddles.",
+ "speed_best": "Whoosh! That's your fastest maths answer ever!",
+ "speed_top3": "Zoom! That one goes into your lightning maths top three!",
  "hi_pre": "Hello,", "hi_post": "Give me one moment while I stir my cauldron.",
 }

@@ -4,11 +4,14 @@ import json, os, sys, subprocess, time, numpy as np, soundfile as sf
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from content import BANK, FACTS, CHEERS, OOPS, FEEDBACK, SCORE, QNUM, LINES
 from names import NAMES, SAY, key
+from content_new import NEW_BANK
+from mathflag import is_math
+for _b in BANK: BANK[_b] = list(BANK[_b]) + list(NEW_BANK.get(_b, []))
 
 OUT, VOICE = sys.argv[1], sys.argv[2]
 JS_ONLY = "--js-only" in sys.argv
 AUD = os.path.join(OUT, "audio")
-REVEAL_SAY = {"H2O": "H two O", "0": "zero", "1916": "nineteen sixteen", "J K Rowling": "J. K. Rowling"}
+REVEAL_SAY = {"H2O": "H two O", "0": "zero", "1916": "nineteen sixteen", "1845": "eighteen forty five", "1973": "nineteen seventy three", "1922": "nineteen twenty two", "1903": "nineteen oh three", "1014": "ten fourteen", "1969": "nineteen sixty nine", "J K Rowling": "J. K. Rowling", "C S Lewis": "C. S. Lewis"}
 
 clips = []  # (path, text) in priority order
 def add(p, t):
@@ -29,7 +32,7 @@ for band, qs in BANK.items():
     bank_js[band] = []
     for i, q in enumerate(qs):
         text, ans = q[0], q[1]; alt = q[2] if len(q) > 2 else []
-        bank_js[band].append({"q": text, "a": ans, "x": alt})
+        bank_js[band].append({"q": text, "a": ans, "x": alt, **({"m": 1} if is_math(text) else {})})
         add(f"q/{band}{i}", text)
         add(f"r/{band}{i}", f"The answer was {REVEAL_SAY.get(ans, ans)}.")
 for i, t in enumerate(FACTS): add(f"f/{i}", t)
