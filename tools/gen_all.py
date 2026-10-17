@@ -65,14 +65,22 @@ def trim(s, sr, pad=0.06):
     a, b = max(0, idx[0] - int(pad * sr)), min(len(s), idx[-1] + int(pad * 3 * sr))
     return s[a:b]
 
+# Each clip's recorded text and voice are kept in audio/texts.json, so a reworded line is re-recorded
+# instead of silently keeping the old audio.
+TEXTS = os.path.join(AUD, "texts.json")
+recorded = json.load(open(TEXTS)) if os.path.exists(TEXTS) else {}
 t0 = time.time(); done = 0
 for i, (p, text) in enumerate(clips):
     dst = os.path.join(AUD, p + ".mp3")
-    if os.path.exists(dst): continue
+    sig = f"{VOICE}|{text}"
+    if os.path.exists(dst) and recorded.get(p, sig) == sig: continue
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     s, sr = k.create(text, voice=voice, speed=speed, lang="en-gb")
     tmp = dst[:-4] + ".wav"; sf.write(tmp, trim(s, sr), sr)
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", tmp, "-af", FX, "-ac", "1", "-b:a", "56k", dst], check=True)
-    os.remove(tmp); done += 1
+    os.remove(tmp); done += 1; recorded[p] = sig
+    if done % 10 == 0: json.dump(recorded, open(TEXTS, "w"), indent=0)
     if done % 10 == 0: print(f"{i+1}/{len(clips)}  {time.time()-t0:.0f}s  {p}", flush=True)
-print("DONE", time.time() - t0, flush=True)
+for p, text in clips: recorded.setdefault(p, f"{VOICE}|{text}")
+json.dump(recorded, open(TEXTS, "w"), indent=0)
+print("DONE", done, "re-recorded", round(time.time() - t0), "s", flush=True)

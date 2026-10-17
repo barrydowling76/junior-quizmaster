@@ -145,7 +145,7 @@ FACTS = [
 
 # Cheers: (before name, after name). The name is spoken as its own little exclamation.
 CHEERS = [
- ("Ka-pow!", "The brain wizard strikes again!"), ("Abracadabra!", "That is spot on!"), ("Hold on to your hats!", "You got it!"),
+ ("Wonderful!", "The brain wizard strikes again!"), ("Abracadabra!", "That is spot on!"), ("Hold on to your hats!", "You got it!"),
  ("Sparkles everywhere!", "Well done, you magnificent wizard!"), ("Give that brain a gold star,", ""), ("Woohoo!", "Another one for the spell book!"),
  ("Is that a genius I see? Why, yes, it's", ""), ("Correct-a-mundo,", ""), ("Brilliant,", "Even my beard is impressed!"),
  ("Swish and score!", "Nice one!"), ("Thunder and lightning!", "You got it right!"), ("Top marks,", ""),

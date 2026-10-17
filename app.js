@@ -1,5 +1,5 @@
 /* Junior Quizmaster — app logic. Content (questions, lines, name list) comes from content.js. */
-const AUDIO_VERSION = "202610170844";
+const AUDIO_VERSION = "202610170923";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pad = n => String(n).padStart(2, "0");
